@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>XD解析</title>
+<!-- <script src="/js/jquery.min.js"></script> -->
+<script
+			  src="https://code.jquery.com/jquery-3.4.1.min.js"
+			  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+			  crossorigin="anonymous"></script>
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+
+<!-- <body background="http://cms-bucket.nosdn.127.net/2018/09/03/ed21fb14c2c745a49442ecbcac2bc1e6.png?imageView&thumbnail=550x0"> -->
+
+<style type="text/css">
+	.title{
+		font-size: 24px;
+	}
+
+</style>
+<body>
+
+
+	<div class="container">
+		<div class="col-md-8 col-md-offset-2" style="text-align: center;">
+                <div class="input-group" style="margin-top: 200px">
+                    <input type="text" class="form-control" id="itemUrl">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="btnSearch">Go!</button>
+                    </span>
+                </div>
+
+                <div id="result" style="display: none;">
+	                <div class="input-group" style="text-align: left;margin-top: 20px">
+	                	<div><span class="title">标题：</span><input id="title" value="" style="border: none;" /></div>
+	                	<div><span class="title">原价：</span><span id="originalPrice"></span></div>
+	                	<div><span class="title">优惠券：</span><a id="couponUrl" href=""></a></div>
+	                	<div><span class="title">主图地址：</span><a id="imageUrl" href=""></a></div>
+                        <div><img src="" id="_img"></div>
+	                </div>
+
+	                <button type="button" class="btn btn-primary" id="btnCopyTitle">复制标题</button>
+                	<button type="button" class="btn btn-primary" id="btnCopyCoupon">复制优惠券</button>
+                	<button type="button" class="btn btn-primary" id="btnSave">保存</button>
+                </div>
+
+
+		</div>
+
+	</div>
+
+
+</body>
+
+
+<script type="text/javascript">
+
+var saveDataJson;
+
+$(document).ready(function(){
+	//开始搜索
+	$("#btnSearch").click(function(){
+		var itemUrl = $("#itemUrl").val()
+		
+		if(null == itemUrl || "" == itemUrl)return
+
+		$.ajax({
+		    url:"/goods/getItemInfo",    //请求的url地址
+		    dataType:"json",   //返回格式为json
+		    async:true,//请求是否异步，默认为异步，这也是ajax重要特性
+		    data:{"itemUrl":itemUrl},    //参数值
+		    type:"GET",   //请求方式
+		    beforeSend:function(){
+		        //请求前的处理
+		    },
+		    success:function(resultJson){
+		        //请求成功时处理
+
+				$("#title").val(resultJson.title  + "---" + resultJson.itemId );
+				$("#originalPrice").text(resultJson.originalPrice);
+				$("#couponUrl").text(resultJson.couponUrl);
+				$("#imageUrl").text(resultJson.imageUrl);
+
+				$("#couponUrl").attr("href", resultJson.couponUrl);
+				$("#imageUrl").attr("href", resultJson.imageUrl);
+				$("#_img").attr("src", resultJson.imageUrl);
+				$("#result").css("display","block");
+				
+				saveDataJson = resultJson
+				//清空
+				$("#itemUrl").val("");
+
+		    },
+		    complete:function(){
+		        //请求完成的处理
+		    },
+		    error:function(){
+		        //请求出错处理
+		    }
+		});
+
+
+	});
+
+
+	$("#btnCopyTitle").click(function(){
+		var titeContent = $("#title");
+		titeContent.select();
+		document.execCommand("Copy");
+
+	});
+
+	$("#btnCopyCoupon").click(function(){
+		var titeContent = $("#couponUrl");
+		titeContent.select();
+		document.execCommand("Copy");
+
+	});
+
+
+	$("#btnSave").click(function(){
+		
+		if (null != saveDataJson) {
+			$.ajax({
+			    url:"/goods/add",    //请求的url地址
+			    dataType:"json",   //返回格式为json
+			    async:true,//请求是否异步，默认为异步，这也是ajax重要特性
+			    data:JSON.stringify(saveDataJson),    //参数值
+			    type:"POST",   //请求方式
+			    beforeSend:function(){
+			        //请求前的处理
+			    },
+			    success:function(resultJson){
+			        //请求成功时处理
+
+			        console.log(resultJson)
+
+			        saveDataJson = null;
+			    },
+			    complete:function(){
+			        //请求完成的处理
+			    },
+			    error:function(){
+			        //请求出错处理
+			    }
+			});
+
+		}
+
+	});
+
+
+
+});
+</script>
+</html>
